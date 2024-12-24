@@ -1,0 +1,6 @@
+apiVersion: v2
+name: simple-git-rollout-operator
+description: A Helm chart to deploy a Git Rollout Operator and an Nginx server.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

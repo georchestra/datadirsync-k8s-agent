@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simple-git-rollout-operator
+  labels:
+    app: simple-git-rollout-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: simple-git-rollout-operator
+  template:
+    metadata:
+      labels:
+        app: simple-git-rollout-operator
+    spec:
+      serviceAccountName: simple-git-rollout-operator
+      containers:
+      - name: operator
+        image: {{ .Values.operator.image }}
+        env:
+        - name: GIT_REPO_URL
+          value: {{ .Values.nginx.gitRepo }}
+        - name: GIT_BRANCH
+          value: {{ .Values.nginx.gitBranch }}
+        - name: POLL_INTERVAL
+          value: "{{ .Values.operator.pollInterval }}"
+            
+

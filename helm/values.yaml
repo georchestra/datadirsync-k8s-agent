@@ -1,0 +1,9 @@
+operator:
+  image: jemacchi/simple-git-rollout-operator:1.0
+  pollInterval: 60
+
+nginx:
+  image: nginx:latest
+  gitRepo: "https://github.com/jemacchi/nginx-site-test.git"
+  gitBranch: "main"
+  replicas: 1
