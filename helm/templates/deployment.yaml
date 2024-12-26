@@ -20,10 +20,24 @@ spec:
         image: {{ .Values.operator.image }}
         env:
         - name: GIT_REPO_URL
-          value: {{ .Values.nginx.gitRepo }}
+          value: "{{ .Values.operator.gitRepo }}"
         - name: GIT_BRANCH
-          value: {{ .Values.nginx.gitBranch }}
+          value: "{{ .Values.operator.gitBranch }}"
         - name: POLL_INTERVAL
           value: "{{ .Values.operator.pollInterval }}"
-            
-
+        - name: ROLLOUT_DEPLOYMENT
+          value: "{{ .Values.operator.deploymentName }}"
+        - name: ROLLOUT_NAMESPACE
+          value: "{{ .Values.operator.namespaceName }}"
+        {{- if and .Values.gitCredentials.username .Values.gitCredentials.token }}          
+        - name: GIT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.operator.gitCredentials.secretName }}
+              key: {{ .Values.operator.gitCredentials.usernameKey }}
+        - name: GIT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.operator.gitCredentials.secretName }}
+              key: {{ .Values.operator.gitCredentials.tokenKey }}
+        {{- end }}

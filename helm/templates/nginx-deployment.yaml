@@ -21,11 +21,28 @@ spec:
         - sh
         - -c
         - |
+          {{- if and .Values.gitCredentials.username .Values.gitCredentials.token }}
+          git clone --branch {{ .Values.nginx.gitBranch }} https://{{ .Values.gitCredentials.username }}:{{ .Values.gitCredentials.token }}@{{ trimPrefix "https://" .Values.nginx.gitRepo }} /git-data
+          {{- else }}
           git clone --branch {{ .Values.nginx.gitBranch }} {{ .Values.nginx.gitRepo }} /git-data
+          {{- end }}
           mv /git-data/* /usr/share/nginx/html/
         volumeMounts:
         - name: html-volume
           mountPath: /usr/share/nginx/html
+        {{- if and .Values.gitCredentials.username .Values.gitCredentials.token }}
+        env:
+        - name: GIT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.nginx.gitCredentials.secretName }}
+              key: {{ .Values.nginx.gitCredentials.usernameKey }}
+        - name: GIT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.nginx.gitCredentials.secretName }}
+              key: {{ .Values.nginx.gitCredentials.tokenKey }}
+        {{- end }}
       containers:
       - name: nginx
         image: {{ .Values.nginx.image }}

@@ -5,7 +5,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: simple-git-rollout-operator
-    namespace: default
+    namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole
   name: git-operator-clusterrole

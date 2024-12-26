@@ -1,9 +1,31 @@
+gitCredentials:
+  username: ""  # To be provided during helm install
+  token: ""     # To be provided during helm install
+
+repo: &repo
+  gitRepo: "https://github.com/jemacchi/nginx-site-test.git"
+  gitBranch: "main"
+
 operator:
-  image: jemacchi/simple-git-rollout-operator:1.0
-  pollInterval: 60
+  image: jemacchi/simple-git-rollout-operator:1.2.1
+  pollInterval: 10
+  deploymentName: "nginx"
+  namespaceName: "default"
+  <<: *repo
+  gitCredentials:
+    secretName: "{{ .Release.Name }}-git-credentials"
+    usernameKey: username
+    tokenKey: token
 
 nginx:
   image: nginx:latest
-  gitRepo: "https://github.com/jemacchi/nginx-site-test.git"
-  gitBranch: "main"
-  replicas: 1
+  <<: *repo
+  replicas: 3
+  service:
+    type: LoadBalancer
+    port: 80
+    targetPort: 80
+  gitCredentials:
+    secretName: "{{ .Release.Name }}-git-credentials"
+    usernameKey: username
+    tokenKey: token
