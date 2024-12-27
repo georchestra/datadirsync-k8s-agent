@@ -13,7 +13,7 @@ operator:
   namespaceName: "default"
   <<: *repo
   gitCredentials:
-    secretName: "{{ .Release.Name }}-git-credentials"
+    secretName: simple-git-rollout-operator-git-credentials
     usernameKey: username
     tokenKey: token
 
@@ -26,6 +26,6 @@ nginx:
     port: 80
     targetPort: 80
   gitCredentials:
-    secretName: "{{ .Release.Name }}-git-credentials"
+    secretName: simple-git-rollout-operator-git-credentials
     usernameKey: username
     tokenKey: token

@@ -33,11 +33,11 @@ spec:
         - name: GIT_USERNAME
           valueFrom:
             secretKeyRef:
-              name: {{ .Values.operator.gitCredentials.secretName }}
-              key: {{ .Values.operator.gitCredentials.usernameKey }}
+              name: "{{ .Values.operator.gitCredentials.secretName }}"
+              key: "{{ .Values.operator.gitCredentials.usernameKey }}"
         - name: GIT_TOKEN
           valueFrom:
             secretKeyRef:
-              name: {{ .Values.operator.gitCredentials.secretName }}
-              key: {{ .Values.operator.gitCredentials.tokenKey }}
+              name: "{{ .Values.operator.gitCredentials.secretName }}"
+              key: "{{ .Values.operator.gitCredentials.tokenKey }}"
         {{- end }}
