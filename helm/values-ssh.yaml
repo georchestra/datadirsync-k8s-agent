@@ -1,0 +1,5 @@
+gitCredentials:
+  ssh: |
+    -----BEGIN RSA PRIVATE KEY-----
+    your-key-content-here
+    -----END RSA PRIVATE KEY-----

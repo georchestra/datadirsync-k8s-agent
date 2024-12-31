@@ -21,6 +21,10 @@ spec:
         - sh
         - -c
         - |
+          echo "Setting up SSH key..."
+          mkdir -p /root/.ssh
+          cp /tmp-ssh/id_rsa /root/.ssh/id_rsa || echo "Copy failed"
+          chmod 600 /root/.ssh/id_rsa || echo "Chmod failed"
           {{- if and .Values.gitCredentials.username .Values.gitCredentials.token }}
           git clone --branch {{ .Values.nginx.gitBranch }} https://{{ .Values.gitCredentials.username }}:{{ .Values.gitCredentials.token }}@{{ trimPrefix "https://" .Values.nginx.gitRepo }} /git-data
           {{- else }}
@@ -30,6 +34,19 @@ spec:
         volumeMounts:
         - name: html-volume
           mountPath: /usr/share/nginx/html
+        {{- if .Values.gitCredentials.ssh }}
+        - name: ssh-key
+          mountPath: /tmp-ssh
+        env:
+        - name: GIT_SSH_COMMAND
+          value: ssh -o "IdentitiesOnly=yes" -o "StrictHostKeyChecking no"
+        - name: ssh-key
+          secret:
+            secretName: {{ .Values.nginx.gitCredentials.secretName }}
+            items:
+            - key: {{ .Values.nginx.gitCredentials.sshKey }}
+              path: id_rsa
+        {{- end }}
         {{- if and .Values.gitCredentials.username .Values.gitCredentials.token }}
         env:
         - name: GIT_USERNAME
@@ -54,3 +71,11 @@ spec:
       volumes:
       - name: html-volume
         emptyDir: {}
+      {{- if .Values.gitCredentials.ssh }}
+      - name: ssh-key
+        secret:
+          secretName: {{ .Values.nginx.gitCredentials.secretName }}
+          items:
+          - key: {{ .Values.nginx.gitCredentials.sshKey }}
+            path: id_rsa
+      {{- end }}

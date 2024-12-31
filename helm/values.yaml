@@ -1,13 +1,14 @@
 gitCredentials:
   username: ""  # To be provided during helm install
   token: ""     # To be provided during helm install
+  ssh: ""       # To be provided during helm install
 
 repo: &repo
   gitRepo: "https://github.com/jemacchi/nginx-site-test.git"
   gitBranch: "main"
 
 operator:
-  image: jemacchi/simple-git-rollout-operator:1.2.1
+  image: jemacchi/simple-git-rollout-operator:1.2.4
   pollInterval: 10
   deploymentName: "nginx"
   namespaceName: "default"
@@ -16,6 +17,7 @@ operator:
     secretName: simple-git-rollout-operator-git-credentials
     usernameKey: username
     tokenKey: token
+    sshKey: ssh
 
 nginx:
   image: nginx:latest
@@ -29,3 +31,4 @@ nginx:
     secretName: simple-git-rollout-operator-git-credentials
     usernameKey: username
     tokenKey: token
+    sshKey: ssh
