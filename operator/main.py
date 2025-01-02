@@ -12,7 +12,7 @@ logging.basicConfig(
 config.load_incluster_config()
 v1_apps = client.AppsV1Api()
 
-GIT_REPO_URL = os.getenv('GIT_REPO_URL', 'https://github.com/jemacchi/nginx-site-test.git')
+GIT_REPO_URL = os.getenv('GIT_REPO_URL', '')
 GIT_BRANCH = os.getenv('GIT_BRANCH', 'main')
 POLL_INTERVAL = int(os.getenv('POLL_INTERVAL', '60'))
 ROLLOUT_DEPLOYMENT = os.getenv('ROLLOUT_DEPLOYMENT', 'nginx')
