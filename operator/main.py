@@ -16,7 +16,7 @@ v1_apps = client.AppsV1Api()
 GIT_REPO_URL = os.getenv('GIT_REPO_URL', '')
 GIT_BRANCH = os.getenv('GIT_BRANCH', 'main')
 POLL_INTERVAL = int(os.getenv('POLL_INTERVAL', '60'))
-ROLLOUT_DEPLOYMENT = os.getenv('ROLLOUT_DEPLOYMENT', 'nginx')
+ROLLOUT_DEPLOYMENTS = os.getenv('ROLLOUT_DEPLOYMENTS', 'nginx')
 ROLLOUT_NAMESPACE = os.getenv('ROLLOUT_NAMESPACE', 'default')
 GIT_USERNAME = os.getenv('GIT_USERNAME', '')
 GIT_TOKEN = os.getenv('GIT_TOKEN', '')
@@ -62,23 +62,27 @@ def show_ssh_key(git_ssh_command):
     else:
         logging.error("SSH key path not found in GIT_SSH_COMMAND")
 
-def trigger_rollout(deployment_name, namespace):
-    logging.info(f"Triggering rollout for {deployment_name} in {namespace}...")
-    patch = {"spec": {"template": {"metadata": {"annotations": {"rollout-time": str(time.time())}}}}}
-    v1_apps.patch_namespaced_deployment(name=deployment_name, namespace=namespace, body=patch)
+def trigger_rollout(deployment_names, namespace):
+    deployment_name_list = deployment_names.split(',')
+
+    for deployment_name in deployment_name_list:
+        deployment_name = deployment_name.strip()
+        logging.info(f"Triggering rollout for {deployment_name} in {namespace}...")
+        patch = {"spec": {"template": {"metadata": {"annotations": {"rollout-time": str(time.time())}}}}}
+        v1_apps.patch_namespaced_deployment(name=deployment_name, namespace=namespace, body=patch)
 
 def main():
     logging.info(f"Starting operator with configuration:")
     logging.info(f"Repository URL: {GIT_REPO_URL}")
     logging.info(f"Branch: {GIT_BRANCH}")
     logging.info(f"Poll interval: {POLL_INTERVAL} seconds")
-    logging.info(f"Rollout deployment: {ROLLOUT_DEPLOYMENT}")
+    logging.info(f"Rollout these deployments: {ROLLOUT_DEPLOYMENTS}")
     logging.info(f"Rollout namespace: {ROLLOUT_NAMESPACE}")
 
     if GIT_SSH_COMMAND:
         logging.info("SSH command is set, using SSH keys for authentication.")
         logging.info(f"Git SSH Command: {GIT_SSH_COMMAND}")
-        show_ssh_key(GIT_SSH_COMMAND)
+        #show_ssh_key(GIT_SSH_COMMAND)
     else:
         logging.info("SSH command is not set, not using SSH keys.")
     
@@ -90,7 +94,7 @@ def main():
         new_commit = get_latest_commit()
         if new_commit != last_commit:
             logging.info(f"New commit detected: {new_commit}")
-            trigger_rollout(ROLLOUT_DEPLOYMENT, ROLLOUT_NAMESPACE)
+            trigger_rollout(ROLLOUT_DEPLOYMENTS, ROLLOUT_NAMESPACE)
             last_commit = new_commit
 
 if __name__ == "__main__":

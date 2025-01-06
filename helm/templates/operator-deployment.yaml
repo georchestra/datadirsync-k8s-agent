@@ -48,8 +48,9 @@ spec:
           value: "{{ .Values.operator.gitBranch }}"
         - name: POLL_INTERVAL
           value: "{{ .Values.operator.pollInterval }}"
-        - name: ROLLOUT_DEPLOYMENT
-          value: "{{ .Values.operator.deploymentName }}"
+        - name: ROLLOUT_DEPLOYMENTS
+          value: {{ $deployments := .Values.operator.deploymentNameList -}}
+                 {{ join ", " $deployments }}
         - name: ROLLOUT_NAMESPACE
           value: "{{ .Values.operator.namespaceName }}"
         {{- if and .Values.gitCredentials.username .Values.gitCredentials.token }}          
