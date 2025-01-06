@@ -2,6 +2,7 @@ import time
 import subprocess
 import os
 import logging
+import re
 from kubernetes import client, config
 
 logging.basicConfig(
@@ -48,14 +49,18 @@ def get_latest_commit():
         
     return result.stdout.split()[0]
 
-def show_ssh_key():
-    ssh_key_path = '/root/.ssh/id_rsa'
-    try:
-        with open(ssh_key_path, 'r') as file:
-            ssh_key_content = file.read()
-        logging.info(f"SSH key content:\n{ssh_key_content}")
-    except Exception as e:
-        logging.error(f"Error reading SSH key: {e}")
+def show_ssh_key(git_ssh_command):
+    match = re.search(r'-i\s+([^\s]+)', git_ssh_command)
+    if match:
+        ssh_key_path = match.group(1)
+        try:
+            with open(ssh_key_path, 'r') as file:
+                ssh_key_content = file.read()
+            logging.info(f"SSH key content:\n{ssh_key_content}")
+        except Exception as e:
+            logging.error(f"Error reading SSH key: {e}")
+    else:
+        logging.error("SSH key path not found in GIT_SSH_COMMAND")
 
 def trigger_rollout(deployment_name, namespace):
     logging.info(f"Triggering rollout for {deployment_name} in {namespace}...")
@@ -72,10 +77,10 @@ def main():
 
     if GIT_SSH_COMMAND:
         logging.info("SSH command is set, using SSH keys for authentication.")
+        logging.info(f"Git SSH Command: {GIT_SSH_COMMAND}")
+        show_ssh_key(GIT_SSH_COMMAND)
     else:
         logging.info("SSH command is not set, not using SSH keys.")
-
-    show_ssh_key()
     
     last_commit = get_latest_commit()
     logging.info(f"Initial commit: {last_commit}")

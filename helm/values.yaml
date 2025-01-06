@@ -4,11 +4,12 @@ gitCredentials:
   ssh: ""       # To be provided during helm install
 
 repo: &repo
-  gitRepo: "https://github.com/jemacchi/nginx-site-test.git"
+  #gitRepo: "https://github.com/jemacchi/nginx-site-test.git"
+  gitRepo: "git@github.com:jemacchi/nginx-site-test.git"
   gitBranch: "main"
 
 operator:
-  image: jemacchi/simple-git-rollout-operator:1.2.4
+  image: jemacchi/simple-git-rollout-operator:1.2.9
   pollInterval: 10
   deploymentName: "nginx"
   namespaceName: "default"

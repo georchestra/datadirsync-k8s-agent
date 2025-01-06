@@ -23,8 +23,16 @@ spec:
         - -c
         - |
           echo "Setting up SSH key..."
-          cp /tmp-ssh/id_rsa /tmp/git-rollout-operator/id_rsa || echo "Copy failed"
-          chmod 600 /tmp/git-rollout-operator/id_rsa || echo "Chmod failed"
+          if cp /tmp-ssh/id_rsa /tmp/git-rollout-operator/id_rsa; then
+            echo "SSH key copied successfully"
+          else
+            echo "Copy failed"
+          fi
+          if chown 1001:1001 /tmp/git-rollout-operator/id_rsa && chmod 600 /tmp/git-rollout-operator/id_rsa; then
+                  echo "SSH key permissions and ownership set successfully"
+          else
+                  echo "Failed to set permissions or ownership"
+          fi
         volumeMounts:
         - name: ssh-key-volume
           mountPath: /tmp-ssh
