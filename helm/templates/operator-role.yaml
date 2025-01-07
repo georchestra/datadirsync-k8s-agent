@@ -2,8 +2,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: simple-git-rollout-operator-role
+  name: git-operator-role
 rules:
-  - apiGroups: [""]
-    resources: ["pods", "deployments"]
-    verbs: ["get", "list", "patch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["patch", "get", "list", "update"]
