@@ -16,7 +16,7 @@ v1_apps = client.AppsV1Api()
 GIT_REPO_URL = os.getenv('GIT_REPO_URL', '')
 GIT_BRANCH = os.getenv('GIT_BRANCH', 'main')
 POLL_INTERVAL = int(os.getenv('POLL_INTERVAL', '60'))
-ROLLOUT_DEPLOYMENTS = os.getenv('ROLLOUT_DEPLOYMENTS', 'nginx')
+ROLLOUT_DEPLOYMENTS = os.getenv('ROLLOUT_DEPLOYMENTS', 'geoserver')
 ROLLOUT_NAMESPACE = os.getenv('ROLLOUT_NAMESPACE', 'default')
 GIT_USERNAME = os.getenv('GIT_USERNAME', '')
 GIT_TOKEN = os.getenv('GIT_TOKEN', '')
@@ -72,7 +72,7 @@ def trigger_rollout(deployment_names, namespace):
         v1_apps.patch_namespaced_deployment(name=deployment_name, namespace=namespace, body=patch)
 
 def main():
-    logging.info(f"Starting operator with configuration:")
+    logging.info(f"Starting agent with configuration:")
     logging.info(f"Repository URL: {GIT_REPO_URL}")
     logging.info(f"Branch: {GIT_BRANCH}")
     logging.info(f"Poll interval: {POLL_INTERVAL} seconds")
