@@ -4,7 +4,7 @@
       [georchestra.org](https://www.georchestra.org/)
 
 -    **Where to get help**:  
-     the [geOrchestra Github repo](https://github.com/georchestra/georchestra), [IRC chat](https://matrix.to/#/#georchestra:osgeo.org), Stack Overflow
+     the [datadirsync-k8s-agent Github repo](https://github.com/georchestra/datadirsync-k8s-agent), [IRC chat](https://matrix.to/#/#georchestra:osgeo.org), Stack Overflow
 
 # Featured tags
 
@@ -13,38 +13,25 @@
 # Quick reference
 
 -	**Where to file issues**:  
-     [https://github.com/georchestra/georchestra/issues](https://github.com/georchestra/georchestra/issues)
+     [https://github.com/georchestra/datadirsync-k8s-agent/issues](https://github.com/georchestra/datadirsync-k8s-agent/issues)
 
 -	**Supported architectures**:   
      [`amd64`](https://hub.docker.com/r/amd64/docker/)
 
 -	**Source of this description**:  
-     [docs repo's `analytics/` directory](https://github.com/georchestra/georchestra/blob/master/analytics/DOCKER_HUB.md)
+     [docs repo's `datadirsync-k8s-agent/` directory](https://github.com/georchestra/datadirsync-k8s-agent/blob/main/DOCKER_HUB.md)
 
-# What is `georchestra/analytics`
+# What is `georchestra/datadirsync-k8s-agent`
 
-**Analytics** is a module for geOrchestra which offers
-- services which are used by the console
-- a GUI which displays **monthly** and **global** statistics on platform usage, through OGC web services monitoring.
-
-It relies on the [ogc-server-statistics](ogc-server-statistics/README.md) module (which is embedded into the security-proxy) to collect figures in a database:
-- service type, layer name, request type (getmap/getfeature/getcapabilities/...), hits
-- username, number of requests
-- organisation, number of requests
-
-Each table can be exported to CSV for easy offline use.
+**Datadirsync-k8s-agent** is a sidecar container that used in context of a geOrchestra Kubernetes setup allows to monitor changes in a Git repository, triggering a rollout of a deployment based on those changes. 
 
 # How to use this image
 
-As for every other geOrchestra webapp, its configuration resides in the data directory ([datadir](https://github.com/georchestra/datadir)), typically something like /etc/georchestra, where it expects to find a analytics sub-directory.
-
-It is recommended to use the official docker composition: https://github.com/georchestra/docker.
-
-For this specific component, see the section `analytics` in the [`georchestra/docker/docker-compose.yml`](https://github.com/georchestra/docker/blob/master/docker-compose.yml) file.
+For this specific component, see the `datadirsync` folder in the [`Helm Georchestra repository`](https://github.com/georchestra/helm-georchestra/tree/main/templates) and the section `datadirsync` in the [`values.yaml`](https://github.com/georchestra/helm-georchestra/blob/main/values.yaml) file.
 
 ## Where is it built
 
-This image is built using docker in TBC.
+This image is built using docker. You can see details in the Dockerfile in the `agent´ folder.
 
 # License
 
