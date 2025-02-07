@@ -1,6 +1,14 @@
-# simple-git-rollout-operator
+# datadirsync-k8s-agent
 
-Simple Git Rollout Operator is a Kubernetes operator that monitors changes in a Git repository and triggers a rollout of a deployment based on those changes. This allows for a simple and automated way to deploy new versions of an application based on changes in a Git repository (not necessarily the same repository which contains the templates for the deployment).
+DatadirSync K8s Agent is a component that you can deploy on your Georchestra Kubernetes setup and it will monitor changes in a Git repository, triggering a rollout of a deployment based on those changes. This allows for a simple and automated way to deploy new versions of an application based on changes in a Git repository.
+
+Important Notes: 
+
+- The code of the agent interacts with K8s API in order to trigger a rollout of a deployment. It is not a full-fledged operator, but it is a simple agent that can be used to trigger a rollout of a deployment based on changes in a Git repository. Required Helm chart templates are in the scope of Georchestra Helm chart repository (https://github.com/georchestra/helm-georchestra/).
+
+- It's not going to work in a non-K8s setup.
+
+- Since it requires to interact with K8s API, it needs to be deployed in the same cluster where Georchestra is deployed along with permissions for Roles and RoleBindings, so you it's suggested not to use in a production environment (you are warned, use at your own risk. You will need to assign the agent roles for rolling out deployments !!!)
 
 ## Features
 
@@ -9,50 +17,19 @@ Simple Git Rollout Operator is a Kubernetes operator that monitors changes in a 
 - Supports polling the Git repository at a configurable interval
 - Supports specifying the Git repository URL, branch, and poll interval as environment variables
 - Supports using a secret to store Git credentials
-
-## Installation
-
-To install the Simple Git Rollout Operator, you can use the provided Helm chart.
-
-Execute the following command to install the operator and an Nginx server which is updated based on Git repo changes:
-
-'''
-./start-demo.sh
-'''
-
-This command starts an interactive script that:
-
-1. Prompts for a Kubernetes namespace (defaults to "default")
-   - Validates the namespace only contains letters, numbers and hyphens
-   - Repeats prompt if input is invalid
-
-2. Prompts for a Git username (optional)
-   - Can be left empty for anonymous access
-
-3. Prompts for a Git token (optional)
-   - Can be left empty for anonymous access
-
-4. Installs the simple-git-rollout-operator using Helm:
-   - Installs it in the specified namespace
-   - Creates the namespace if it doesn't exist
-   - Configures Git credentials if provided
-   
+ 
 ## Configuration
 
-The following configuration options are available for the Simple Git Rollout Operator:
+The agent will require to setup following environment variables:
 
-- `operator.image`: The Docker image for the operator (default: `jemacchi/simple-git-rollout-operator:1.1`)
-- `operator.gitRepo`: The URL of the Git repository to monitor (default: `https://github.com/jemacchi/simple-git-rollout-operator-nginx-demo.git`)
-- `operator.gitBranch`: The branch of the Git repository to monitor (default: `main`)
-- `operator.pollInterval`: The interval at which to poll the Git repository for changes (default: `60`)
-- `nginx.image`: The Docker image for the Nginx server (default: `nginx:1.23.1`)
-- `nginx.gitRepo`: The URL of the Git repository containing the Nginx configuration (default: `https://github.com/jemacchi/simple-git-rollout-operator-nginx-demo.git`)
-- `nginx.gitBranch`: The branch of the Git repository containing the Nginx configuration (default: `main`)
+- `GIT_REPO`: The URL of the Git repository to monitor (default: empty value, mandatory)
+- `GIT_BRANCH`: The branch of the Git repository to monitor (default: `main`, mandatory)
+- `POLL_INTERVAL`: The interval at which to poll the Git repository for changes (default: `60`)
+- `GIT_USERNAME`: The username to use for Git authentication (optional)
+- `GIT_TOKEN`: The token to use for Git authentication (optional) 
+- `ROLLOUT_DEPLOYMENTS`: The name of the deployments to rollout (default: `geoserver`, mandatory, comma separated list)
+- `ROLLOUT_NAMESPACE`: The namespace of the deployment to rollout (default: `default`, mandatory)
+- `GIT_SSH_COMMAND`: The SSH command to use for Git authentication (optional, when SSH keys used)
 
-
-
-
-
-
-
+For a reference on how it's used in a Kubernetes deployment, see the [Georchestra Helm chart](https://github.com/georchestra/helm-georchestra) repository.
 
