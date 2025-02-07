@@ -1,0 +1,62 @@
+name: "datadirsync"
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "agent/**"
+  pull_request:
+    paths:
+      - "agent/**"
+
+jobs:
+  build:
+    if: "!startsWith(github.event.head_commit.message, '[skip ci] ')"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - name: "Checking out"
+      uses: actions/checkout@v1
+
+    - name: Getting image tag
+      if: github.repository == 'georchestra/datadirsync-k8s-agent' && github.actor != 'dependabot[bot]'
+      id: version
+      run: echo ::set-output name=VERSION::$(echo $GITHUB_REF | cut -d / -f 3)
+
+    - name: "Building docker image"
+      if: github.repository == 'georchestra/datadirsync-k8s-agent' && github.actor != 'dependabot[bot]'
+      working-directory: .
+      run: docker build -t georchestra/datadirsync-k8s-agent:${{ steps.version.outputs.VERSION }} ./agent
+
+    - name: "Logging in docker.io"
+      if: github.repository == 'georchestra/datadirsync-k8s-agent' && github.actor != 'dependabot[bot]' && github.event_name != 'pull_request'
+      uses: azure/docker-login@v1
+      with:
+        username: '${{ secrets.DOCKER_HUB_USERNAME }}'
+        password: '${{ secrets.DOCKER_HUB_PASSWORD }}'
+
+    - name: "Pushing latest to docker.io"
+      if: github.ref == 'refs/heads/master' && github.repository == 'georchestra/datadirsync-k8s-agent' && github.actor != 'dependabot[bot]' && github.event_name != 'pull_request'
+      run: |
+        docker tag georchestra/datadirsync-k8s-agent:${{ steps.version.outputs.VERSION }} georchestra/datadirsync-k8s-agent:latest
+        docker push georchestra/datadirsync-k8s-agent:latest
+
+    - name: "Update Docker Hub Description"
+      if: github.ref == 'refs/heads/main' && github.repository == 'georchestra/datadirsync-k8s-agent' && github.actor != 'dependabot[bot]' && github.event_name != 'pull_request'
+      uses: peter-evans/dockerhub-description@v3
+      with:
+        username: ${{ secrets.DOCKER_HUB_USERNAME }}
+        password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+        repository: georchestra/datadirsync-k8s-agent
+        readme-filepath: ./DOCKER_HUB.md
+        short-description: 'DatadirSync K8s Agent for geOrchestra SDI'
+
+    - name: "Pushing release branch to docker.io"
+      if: contains(github.ref, 'refs/heads/24.') && github.repository == 'georchestra/datadirsync-k8s-agent' && github.actor != 'dependabot[bot]' && github.event_name != 'pull_request'
+      run: |
+        docker push georchestra/datadirsync-k8s-agent:${{ steps.version.outputs.VERSION }}
+
+    - name: "Pushing release tag to docker.io"
+      if: contains(github.ref, 'refs/tags/24.') && github.repository == 'georchestra/datadirsync-k8s-agent' && github.actor != 'dependabot[bot]' && github.event_name != 'pull_request'
+      run: |
+        docker push georchestra/datadirsync-k8s-agent:${{ steps.version.outputs.VERSION }}
+
