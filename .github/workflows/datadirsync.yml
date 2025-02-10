@@ -2,11 +2,11 @@ name: "datadirsync"
 on:
   workflow_dispatch:
   push:
-    paths:
-      - "agent/**"
+    branches:
+      - main
   pull_request:
-    paths:
-      - "agent/**"
+    branches:
+      - main
 
 jobs:
   build:
