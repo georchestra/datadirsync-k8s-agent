@@ -2,11 +2,11 @@ name: "datadirsync"
 on:
   workflow_dispatch:
   push:
-    paths:
-      - "agent/**"
+    branches:
+      - main
   pull_request:
-    paths:
-      - "agent/**"
+    branches:
+      - main
 
 jobs:
   build:
@@ -21,6 +21,9 @@ jobs:
       if: github.repository == 'georchestra/datadirsync-k8s-agent' && github.actor != 'dependabot[bot]'
       id: version
       run: echo ::set-output name=VERSION::$(echo $GITHUB_REF | cut -d / -f 3)
+
+    - name: Debug version
+      run: echo "VERSION=${{ steps.version.outputs.VERSION }}"
 
     - name: "Building docker image"
       if: github.repository == 'georchestra/datadirsync-k8s-agent' && github.actor != 'dependabot[bot]'
@@ -51,12 +54,12 @@ jobs:
         short-description: 'DatadirSync K8s Agent for geOrchestra SDI'
 
     - name: "Pushing release branch to docker.io"
-      if: contains(github.ref, 'refs/heads/1.') && github.repository == 'georchestra/datadirsync-k8s-agent' && github.actor != 'dependabot[bot]' && github.event_name != 'pull_request'
+      if: contains(github.ref, 'refs/heads/') && github.repository == 'georchestra/datadirsync-k8s-agent' && github.actor != 'dependabot[bot]' && github.event_name != 'pull_request'
       run: |
         docker push georchestra/datadirsync-k8s-agent:${{ steps.version.outputs.VERSION }}
 
     - name: "Pushing release tag to docker.io"
-      if: contains(github.ref, 'refs/tags/1.') && github.repository == 'georchestra/datadirsync-k8s-agent' && github.actor != 'dependabot[bot]' && github.event_name != 'pull_request'
+      if: startsWith(github.ref, 'refs/tags/') && github.repository == 'georchestra/datadirsync-k8s-agent' && github.actor != 'dependabot[bot]' && github.event_name != 'pull_request'
       run: |
         docker push georchestra/datadirsync-k8s-agent:${{ steps.version.outputs.VERSION }}
 

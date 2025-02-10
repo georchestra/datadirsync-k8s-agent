@@ -1,3 +1,22 @@
+"""
+Git-based Kubernetes Deployment Auto-Rollout Agent
+
+This script monitors a specified Git repository for new commits in a given branch.
+When a new commit is detected, it triggers a rollout of one or more Kubernetes
+deployments by patching their annotations, forcing a restart of the pods.
+
+Features:
+- Supports both SSH and authenticated HTTPS Git access.
+- Configurable via environment variables:
+  - GIT_REPO_URL: URL of the Git repository to monitor.
+  - GIT_BRANCH: Branch to track for changes (default: main).
+  - POLL_INTERVAL: Time interval (in seconds) between checks (default: 60).
+  - ROLLOUT_DEPLOYMENTS: Comma-separated list of Kubernetes deployments to restart.
+  - ROLLOUT_NAMESPACE: Kubernetes namespace where the deployments reside.
+- Uses Kubernetes API to apply rolling updates when changes are detected.
+
+"""
+
 import time
 import subprocess
 import os
