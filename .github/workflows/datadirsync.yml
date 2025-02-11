@@ -17,18 +17,19 @@ jobs:
     - name: "Checking out"
       uses: actions/checkout@v1
 
-    - name: Getting image tag
-      if: github.repository == 'georchestra/datadirsync-k8s-agent' && github.actor != 'dependabot[bot]'
-      id: version
-      run: echo ::set-output name=VERSION::$(echo $GITHUB_REF | cut -d / -f 3)
+    - name: "Determine Tag or Latest"
+      id: tag_or_latest
+      run: |
+        TAG=$(git describe --tags --exact-match HEAD 2>/dev/null || echo "latest")
+        echo "Chosen TAG: $TAG"
+        echo ::set-output name=TAG::$TAG
 
     - name: Debug version
-      run: echo "VERSION=${{ steps.version.outputs.VERSION }}"
+      run: echo "VERSION=${{ steps.tag_or_latest.outputs.TAG }}"
 
     - name: "Building docker image"
       if: github.repository == 'georchestra/datadirsync-k8s-agent' && github.actor != 'dependabot[bot]'
-      working-directory: .
-      run: docker build -t georchestra/datadirsync-k8s-agent:${{ steps.version.outputs.VERSION }} ./agent
+      run: docker build -t georchestra/datadirsync-k8s-agent:${{ steps.tag_or_latest.outputs.TAG }} ./agent
 
     - name: "Logging in docker.io"
       if: github.repository == 'georchestra/datadirsync-k8s-agent' && github.actor != 'dependabot[bot]' && github.event_name != 'pull_request'
@@ -37,10 +38,15 @@ jobs:
         username: '${{ secrets.DOCKER_HUB_USERNAME }}'
         password: '${{ secrets.DOCKER_HUB_PASSWORD }}'
 
-    - name: "Pushing latest to docker.io"
-      if: github.ref == 'refs/heads/main' && github.repository == 'georchestra/datadirsync-k8s-agent' && github.actor != 'dependabot[bot]' && github.event_name != 'pull_request'
+    - name: "Push image to docker.io with tag"
+      if: github.repository == 'georchestra/datadirsync-k8s-agent' && github.actor != 'dependabot[bot]' && github.event_name == 'pull_request'
       run: |
-        docker tag georchestra/datadirsync-k8s-agent:${{ steps.version.outputs.VERSION }} georchestra/datadirsync-k8s-agent:latest
+        docker push georchestra/datadirsync-k8s-agent:${{ steps.tag_or_latest.outputs.TAG }}
+
+    - name: "Push image to docker.io tagged as latest"
+      if: github.repository == 'georchestra/datadirsync-k8s-agent' && github.actor != 'dependabot[bot]' && github.event_name == 'pull_request'
+      run: |
+        docker tag georchestra/datadirsync-k8s-agent:${{ steps.tag_or_latest.outputs.TAG }} georchestra/datadirsync-k8s-agent:latest
         docker push georchestra/datadirsync-k8s-agent:latest
 
     - name: "Update Docker Hub Description"
@@ -52,14 +58,4 @@ jobs:
         repository: georchestra/datadirsync-k8s-agent
         readme-filepath: ./DOCKER_HUB.md
         short-description: 'DatadirSync K8s Agent for geOrchestra SDI'
-
-    - name: "Pushing release branch to docker.io"
-      if: contains(github.ref, 'refs/heads/') && github.repository == 'georchestra/datadirsync-k8s-agent' && github.actor != 'dependabot[bot]' && github.event_name != 'pull_request'
-      run: |
-        docker push georchestra/datadirsync-k8s-agent:${{ steps.version.outputs.VERSION }}
-
-    - name: "Pushing release tag to docker.io"
-      if: startsWith(github.ref, 'refs/tags/') && github.repository == 'georchestra/datadirsync-k8s-agent' && github.actor != 'dependabot[bot]' && github.event_name != 'pull_request'
-      run: |
-        docker push georchestra/datadirsync-k8s-agent:${{ steps.version.outputs.VERSION }}
 
