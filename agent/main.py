@@ -22,6 +22,7 @@ import subprocess
 import os
 import logging
 import re
+import json
 from kubernetes import client, config
 
 logging.basicConfig(
@@ -41,7 +42,13 @@ GIT_USERNAME = os.getenv('GIT_USERNAME', '')
 GIT_TOKEN = os.getenv('GIT_TOKEN', '')
 GIT_SSH_COMMAND = os.getenv('GIT_SSH_COMMAND', '')
 
+def load_folder_to_deployment_map(file_path):
+    """Load the mapping of folders and files to deployments from a JSON file."""
+    with open(file_path, 'r') as file:
+        return json.load(file)
+
 def get_latest_commit():
+    """Retrieve the latest commit hash from the specified Git branch."""
     git_url = GIT_REPO_URL
 
     if GIT_SSH_COMMAND:
@@ -68,20 +75,41 @@ def get_latest_commit():
         
     return result.stdout.split()[0]
 
-def show_ssh_key(git_ssh_command):
-    match = re.search(r'-i\s+([^\s]+)', git_ssh_command)
-    if match:
-        ssh_key_path = match.group(1)
-        try:
-            with open(ssh_key_path, 'r') as file:
-                ssh_key_content = file.read()
-            logging.info(f"SSH key content:\n{ssh_key_content}")
-        except Exception as e:
-            logging.error(f"Error reading SSH key: {e}")
-    else:
-        logging.error("SSH key path not found in GIT_SSH_COMMAND")
+def get_changed_files(commit_hash):
+    """Obtain the list of files changed in the specified commit."""
+    result = subprocess.run(
+        ["git", "show", "--name-only", commit_hash],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+
+    if result.returncode != 0:
+        logging.error(f"Git command failed: {result.stderr}")
+        raise Exception("Failed to get changed files")
+
+    files_changed = result.stdout.splitlines()[6:]  # Skip the commit message
+
+    return files_changed
+
+def determine_affected_deployments(changed_files, folder_to_deployment_map):
+    """Determine which deployments should be rolled based on changed files."""
+    affected_deployments = set()
+
+    for changed_file in changed_files:
+        # Check if the file itself is mapped
+        if changed_file in folder_to_deployment_map:
+            affected_deployments.update(folder_to_deployment_map[changed_file])
+        
+        # Check if the folder is mapped
+        folder = changed_file.split('/')[0]  # Get the folder name
+        if folder in folder_to_deployment_map:
+            affected_deployments.update(folder_to_deployment_map[folder])
+
+    return list(affected_deployments)
 
 def trigger_rollout(deployment_names, namespace):
+    """Trigger a Kubernetes rollout for the specified deployments."""
     deployment_name_list = deployment_names.split(',')
 
     for deployment_name in deployment_name_list:
@@ -95,7 +123,6 @@ def main():
     logging.info(f"Repository URL: {GIT_REPO_URL}")
     logging.info(f"Branch: {GIT_BRANCH}")
     logging.info(f"Poll interval: {POLL_INTERVAL} seconds")
-    logging.info(f"Rollout these deployments: {ROLLOUT_DEPLOYMENTS}")
     logging.info(f"Rollout namespace: {ROLLOUT_NAMESPACE}")
 
     if GIT_SSH_COMMAND:
@@ -104,17 +131,25 @@ def main():
         #show_ssh_key(GIT_SSH_COMMAND)
     else:
         logging.info("SSH command is not set, not using SSH keys.")
-    
-    last_commit = get_latest_commit()
-    logging.info(f"Initial commit: {last_commit}")
-    
-    while True:
-        time.sleep(POLL_INTERVAL)
-        new_commit = get_latest_commit()
-        if new_commit != last_commit:
-            logging.info(f"New commit detected: {new_commit}")
-            trigger_rollout(ROLLOUT_DEPLOYMENTS, ROLLOUT_NAMESPACE)
-            last_commit = new_commit
+        
+    try:
+        folder_to_deployment_map = load_folder_to_deployment_map('folder_to_deployment_map.json')
+        latest_commit = get_latest_commit()
+        logging.info(f"Initial commit: {latest_commit}")
+        
+        while True:
+            time.sleep(POLL_INTERVAL)
+            new_commit = get_latest_commit()
+            if new_commit != latest_commit:
+                logging.info(f"New commit detected: {new_commit}")
+                changed_files = get_changed_files(new_commit)
+                affected_deployments = determine_affected_deployments(changed_files, folder_to_deployment_map)
+                if affected_deployments:
+                    logging.info(f"Deployments to rollout: {affected_deployments}")
+                    trigger_rollout(','.join(affected_deployments), ROLLOUT_NAMESPACE)
+                latest_commit = new_commit
+    except Exception as e:
+        logging.error(str(e))
 
 if __name__ == "__main__":
     main()
