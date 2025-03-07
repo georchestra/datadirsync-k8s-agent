@@ -27,7 +27,6 @@ The agent will require to setup following environment variables:
 - `POLL_INTERVAL`: The interval at which to poll the Git repository for changes (default: `60`)
 - `GIT_USERNAME`: The username to use for Git authentication (optional)
 - `GIT_TOKEN`: The token to use for Git authentication (optional) 
-- `ROLLOUT_DEPLOYMENTS`: The name of the deployments to rollout (default: `geoserver`, mandatory, comma separated list)
 - `ROLLOUT_NAMESPACE`: The namespace of the deployment to rollout (default: `default`, mandatory)
 - `GIT_SSH_COMMAND`: The SSH command to use for Git authentication (optional, when SSH keys used)
 
