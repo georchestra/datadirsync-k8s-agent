@@ -1,23 +1,23 @@
 # datadirsync-k8s-agent
 
-DatadirSync K8s Agent is a component that you can deploy on your Georchestra Kubernetes setup and it will monitor changes in a Git repository, triggering a rollout of a deployment based on those changes. This allows for a simple and automated way to deploy new versions of an application based on changes in a Git repository.
+DatadirSync K8s Agent is a component that can be deployed on your Georchestra Kubernetes setup to monitor changes in a Git repository and trigger a deployment rollout based on those changes. This provides a simple and automated approach to deploying new application versions when updates are made in a Git repository.
 
-Important Notes: 
+Important Notes:
 
-- The code of the agent interacts with K8s API in order to trigger a rollout of a deployment. It is not a full-fledged operator, but it is a simple agent that can be used to trigger a rollout of a deployment based on changes in a Git repository. Required Helm chart templates are in the scope of Georchestra Helm chart repository (https://github.com/georchestra/helm-georchestra/).
+- The agent's code interfaces with the K8s API to initiate a deployment rollout. It is not a complete operator but a straightforward agent to trigger deployments based on Git repository changes. Necessary Helm chart templates are part of the Georchestra Helm chart repository (https://github.com/georchestra/helm-georchestra/).
 
-- It's not going to work in a non-K8s setup.
+- It is inapplicable in a non-K8s environment.
 
-- Since it requires to interact with K8s API, it needs to be deployed in the same cluster where Georchestra is deployed along with permissions for Roles and RoleBindings, so you it's suggested not to use in a production environment (you are warned, use at your own risk. You will need to assign the agent roles for rolling out deployments !!!)
+- As it needs to interact with the K8s API, it must be deployed in the same cluster where Georchestra is hosted, with appropriate Roles and RoleBindings permissions. Caution is advised against using it in a production environment (use at your own risk, assigning agent roles is necessary for deploying rollouts !!!).
 
 ## Features
 
 - Monitors changes in a Git repository
-- Triggers a rollout of a deployment based on those changes
-- Supports polling the Git repository at a configurable interval
-- Supports specifying the Git repository URL, branch, and poll interval as environment variables
+- Triggers a deployment rollout based on detected changes
+- Supports configurable polling intervals for the Git repository
+- Allows specifying Git repository URL, branch, and poll interval via environment variables
 - Supports using a secret to store Git credentials
- 
+
 ## Configuration
 
 The agent will require to setup following environment variables:
@@ -27,9 +27,29 @@ The agent will require to setup following environment variables:
 - `POLL_INTERVAL`: The interval at which to poll the Git repository for changes (default: `60`)
 - `GIT_USERNAME`: The username to use for Git authentication (optional)
 - `GIT_TOKEN`: The token to use for Git authentication (optional) 
-- `ROLLOUT_DEPLOYMENTS`: The name of the deployments to rollout (default: `geoserver`, mandatory, comma separated list)
 - `ROLLOUT_NAMESPACE`: The namespace of the deployment to rollout (default: `default`, mandatory)
 - `GIT_SSH_COMMAND`: The SSH command to use for Git authentication (optional, when SSH keys used)
+- `ROLLOUT_MAPPING_FILE`: The path to the YAML configuration file for deployment mappings (default: `/tmp/datadirsync/rollout_mapping_config.yaml`)
+
+### Deployment Mapping
+
+To configure mappings between files/folders and the deployments to be rolled out, a YAML configuration file must be specified. You can override the default file by creating a ConfigMap and setting the `ROLLOUT_MAPPING_FILE` environment variable.
+
+Here is an example of how the YAML file might look:
+
+```yaml
+"*":
+  - geoserver
+"header":
+  - header
+"cas":
+  - header
+  - cas
+```
+
+In the example above:
+- Changes within the `header` directory will trigger a rollout for the `header`.
+- Changes within the `cas` directory will trigger a rollout for the `header` and `cas`.
+- The wildcard `*` indicates that any changes will trigger rollouts for `geoserver`.
 
 For a reference on how it's used in a Kubernetes deployment, see the [Georchestra Helm chart](https://github.com/georchestra/helm-georchestra) repository.
-
