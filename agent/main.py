@@ -43,9 +43,13 @@ GIT_SSH_COMMAND = os.getenv('GIT_SSH_COMMAND', '')
 
 
 def checkout_repo(repo, branch):
+    default_branch = repo.git.rev_parse('--abbrev-ref', 'HEAD')
     remote_branches = [ref.name for ref in repo.remote().refs]
     remote_branch = f'origin/{branch}'
-    if remote_branch in remote_branches:
+
+    if branch == default_branch:
+        logging.info(f"Branch {branch} is the default branch, already checked out.")
+    elif remote_branch in remote_branches:
         logging.info(f"Branch {branch} existing in refs.")
         repo.git.checkout('-b', branch, remote_branch)
         logging.info(f"Checkout of branch {branch} done.")
